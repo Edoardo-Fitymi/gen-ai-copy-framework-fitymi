@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitymi Nexus | MoE Orchestrator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #ededed; }
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #c084fc 0%, #60a5fa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            border-left-color: #60a5fa;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
+    <div class="max-w-4xl w-full">
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl font-bold tracking-tight mb-2">Fitymi <span class="gradient-text">Nexus</span></h1>
+            <p class="text-zinc-400">Phase 5: Enterprise Multi-Agent Architecture (MoA) Dashboard</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- INPUT PANEL -->
+            <div class="glass-panel p-6 rounded-2xl">
+                <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    New Campaign parameters
+                </h2>
+                
+                <form id="nexusForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-1">Brand Name</label>
+                        <input type="text" id="brand" value="TechCorp" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-sm focus:outline-none focus:border-purple-500 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-1">Target Audience</label>
+                        <input type="text" id="target" value="Skeptical CTOs" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-sm focus:outline-none focus:border-purple-500 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-1">Product</label>
+                        <input type="text" id="product" value="Automated Posture Management Platform" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-sm focus:outline-none focus:border-purple-500 transition-colors">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-zinc-400 mb-1">Goal</label>
+                            <input type="text" id="goal" value="Request Demo" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-sm focus:outline-none focus:border-purple-500 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-zinc-400 mb-1">Content Type</label>
+                            <input type="text" id="task_type" value="Landing Headline" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-sm focus:outline-none focus:border-purple-500 transition-colors">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full mt-4 bg-white text-black font-semibold py-3 rounded-lg hover:bg-zinc-200 transition-colors flex justify-center items-center gap-2">
+                        <span>Deploy MoA Agents</span>
+                        <div id="loading" class="spinner hidden"></div>
+                    </button>
+                </form>
+            </div>
+
+            <!-- OUTPUT PANEL -->
+            <div class="glass-panel p-6 rounded-2xl flex flex-col h-full">
+                <h2 class="text-xl font-semibold mb-4 flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        AEO Validated Output
+                    </span>
+                    <span id="scoreBadge" class="hidden text-xs font-bold px-2 py-1 bg-green-900/50 text-green-400 rounded border border-green-800/50">Score: 0.00</span>
+                </h2>
+                <div class="flex-grow bg-black/40 rounded-lg border border-zinc-800 p-4 font-mono text-sm text-zinc-300 overflow-y-auto whitespace-pre-wrap relative" id="outputConsole">
+                    <span class="text-zinc-600">// Waiting for DAG execution...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('nexusForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = e.target.querySelector('button span');
+            const spinner = document.getElementById('loading');
+            const consoleBox = document.getElementById('outputConsole');
+            const scoreBadge = document.getElementById('scoreBadge');
+            
+            btn.textContent = "Agents Processing (DAG)...";
+            spinner.classList.remove('hidden');
+            consoleBox.innerHTML = '<span class="text-blue-400">Initializing FitymiNexus Orchestrator...</span>\n> Routing Strategist Agent...\n> Analyzing Context...\n';
+            scoreBadge.classList.add('hidden');
+
+            const payload = {
+                brand: document.getElementById('brand').value,
+                target_audience: document.getElementById('target').value,
+                product: document.getElementById('product').value,
+                goal: document.getElementById('goal').value,
+                task_type: document.getElementById('task_type').value,
+                constraints: { max_words: 100, tone: "autoritario, zerohype" }
+            };
+
+            try {
+                const res = await fetch('/api/v1/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    const result = data.data;
+                    consoleBox.innerHTML = `
+<span class="text-zinc-500">--------- [ DAG Execution Complete ] ---------</span>
+<span class="text-purple-400 font-bold">\n[STRATEGIST ANGLE]:</span>\n${result.strategy.substr(0, 150)}...
+<span class="text-blue-400 font-bold">\n[RCoV ITERATIONS]:</span> ${result.iterations} loop(s)
+<span class="text-green-400 font-bold block mt-4 text-base">[FINAL COPY (AEO COMPLIANT)]:</span>\n<div class="mt-2 text-white bg-zinc-900 p-4 rounded">${result.final_copy}</div>`;
+                    
+                    scoreBadge.textContent = 'AEO Score: ' + result.final_score.toFixed(2);
+                    scoreBadge.classList.remove('hidden');
+                } else {
+                    consoleBox.innerHTML = '<span class="text-red-500">Error during generation.</span>';
+                }
+            } catch (err) {
+                consoleBox.innerHTML = '<span class="text-red-500">Network Error. Is the FastAPI server running?</span>';
+            } finally {
+                btn.textContent = "Deploy MoA Agents";
+                spinner.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
